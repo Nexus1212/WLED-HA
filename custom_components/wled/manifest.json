@@ -1,12 +1,19 @@
 {
   "domain": "wled",
   "name": "WLED",
-  "codeowners": ["@frenck", "@mik-laj"],
+  "codeowners": [
+    "@Nexus1212"
+  ],
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/wled",
+  "documentation": "https://github.com/Nexus1212/WLED-HA",
   "integration_type": "device",
   "iot_class": "local_push",
-  "quality_scale": "platinum",
-  "requirements": ["wled==1.1.1"],
-  "zeroconf": ["_wled._tcp.local."]
+  "requirements": [
+    "wled==1.1.1"
+  ],
+  "zeroconf": [
+    "_wled._tcp.local."
+  ],
+  "version": "0.1.0",
+  "issue_tracker": "https://github.com/Nexus1212/WLED-HA/issues"
 }

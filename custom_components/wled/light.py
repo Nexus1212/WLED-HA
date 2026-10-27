@@ -1,4 +1,8 @@
-"""Support for LED lights."""
+"""Support for LED lights.
+
+Modified from Home Assistant Core 2026.10.4 for WLED-HA:
+filtered effect choices and cancellable, delayed segment turn-on events.
+"""
 
 from functools import partial
 from typing import Any, cast, override
@@ -33,6 +37,11 @@ from .const import (
 from .coordinator import WLEDConfigEntry, WLEDDataUpdateCoordinator
 from .entity import WLEDEntity
 from .helpers import kelvin_to_255, kelvin_to_255_reverse, wled_exception_handler
+from .segment_commands import (
+    EVENT_SEGMENT_TURN_ON_REQUESTED,
+    SegmentCommands,
+    filtered_effects,
+)
 
 PARALLEL_UPDATES = 1
 
@@ -176,6 +185,14 @@ class WLEDSegmentLight(WLEDEntity, LightEntity):
         """Initialize WLED segment light."""
         super().__init__(coordinator=coordinator)
         self._segment = segment
+        self._commands = SegmentCommands(
+            self._async_send_on,
+            self._async_send_off,
+            self._emit_turn_on_request,
+            lambda coro: self.hass.async_create_task(
+                coro, f"WLED delayed turn-on: {self.entity_id}"
+            ),
+        )
 
         # Segment 0 uses a simpler name, which is more natural for when using
         # a single segment / using WLED with one big LED strip.
@@ -311,7 +328,9 @@ class WLEDSegmentLight(WLEDEntity, LightEntity):
     @override
     def effect_list(self) -> list[str]:
         """Return the list of supported effects."""
-        return [effect.name for effect in self.coordinator.data.effects.values()]
+        return filtered_effects(
+            {effect.name for effect in self.coordinator.data.effects.values()}
+        )
 
     @property
     @override
@@ -326,9 +345,36 @@ class WLEDSegmentLight(WLEDEntity, LightEntity):
 
         return bool(state.segments[self._segment].on)
 
-    @wled_exception_handler
+    @callback
+    def _emit_turn_on_request(self) -> None:
+        """Let Node-RED turn on the power supply before sending to WLED."""
+        self.hass.bus.async_fire(
+            EVENT_SEGMENT_TURN_ON_REQUESTED,
+            {
+                "entity_id": self.entity_id,
+                "segment_id": self._segment,
+                "config_entry_id": self.coordinator.config_entry.entry_id,
+            },
+        )
+
+    @override
+    async def async_will_remove_from_hass(self) -> None:
+        """Cancel queued commands before removing the entity."""
+        await self._commands.close()
+        await super().async_will_remove_from_hass()
+
+    @override
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Queue an OFF-to-ON transition or update an already running light."""
+        await self._commands.turn_on(self.is_on, **kwargs)
+
     @override
     async def async_turn_off(self, **kwargs: Any) -> None:
+        """Cancel a pending ON and send OFF immediately."""
+        await self._commands.turn_off(**kwargs)
+
+    @wled_exception_handler
+    async def _async_send_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
         transition = None
         if ATTR_TRANSITION in kwargs:
@@ -345,8 +391,7 @@ class WLEDSegmentLight(WLEDEntity, LightEntity):
         )
 
     @wled_exception_handler
-    @override
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def _async_send_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
         data: dict[str, Any] = {
             ATTR_ON: True,
