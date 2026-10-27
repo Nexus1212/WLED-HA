@@ -239,6 +239,14 @@ class SegmentCommandsTests(unittest.IsolatedAsyncioTestCase):
 
 
 class EffectsTests(unittest.TestCase):
+    def test_blends_and_bpm_use_exact_firmware_names(self):
+        self.assertEqual(
+            commands.filtered_effects({"Bpm", "Blends", "Solid", "Blink"}),
+            ["Solid", "Blends", "Bpm"],
+        )
+        self.assertNotIn("Bends", commands.ALLOWED_EFFECTS)
+        self.assertNotIn("BPM", commands.ALLOWED_EFFECTS)
+
     def test_exact_29_effects_solid_first(self):
         self.assertEqual(len(commands.ALLOWED_EFFECTS), 29)
         self.assertEqual(len(set(commands.ALLOWED_EFFECTS)), 29)

@@ -14,6 +14,6 @@
   "zeroconf": [
     "_wled._tcp.local."
   ],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "issue_tracker": "https://github.com/Nexus1212/WLED-HA/issues"
 }

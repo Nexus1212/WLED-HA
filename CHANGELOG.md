@@ -1,5 +1,10 @@
 # Versionshistorie
 
+## 0.2.1
+
+- Effektnamen auf die WLED-Schreibweise `Blends` und `Bpm` korrigiert. Beide wurden zuvor durch den exakten Namensvergleich ausgeblendet.
+- Regressionstest für die beiden Firmware-Namen ergänzt.
+
 ## 0.2.0
 
 - Optionale frühzeitige Freigabe per `wled_segment_turn_on_ready` mit Entity-ID und Request-ID.
