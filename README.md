@@ -8,7 +8,7 @@ Dieser Branch enthält die 19 unveränderten Dateien der offiziellen WLED-Integr
 
 [Original → unsere Anpassungen (zeilenweise)](https://github.com/Nexus1212/WLED-HA/compare/upstream-2026.10.4...vergleich-anpassungen)
 
-Der Branch `vergleich-anpassungen` enthält einen geprüften Schnappschuss von `main` (Commit `c59c7daaa8111f06923222b6c52eb0497e0ce619`), dessen Dateistand direkt auf dieser Originalbasis aufsetzt. Dadurch erkennt GitHub die tatsächlichen Unterschiede. Die Historie und Dateien von `main` bleiben unverändert. Nach späteren Änderungen an `main` muss der Vergleichsbranch entsprechend aktualisiert werden.
+Der Branch `vergleich-anpassungen` wird als Dateikopie der angepassten Version auf dieser Originalbasis geführt. Aktueller Stand: Version **0.2.0**, identisch mit `main` bei Commit `0c2a2f42872c4239a5625f38b0269a107c9e51d3`. Dadurch erkennt GitHub die tatsächlichen Unterschiede. Die Historie von `main` bleibt eigenständig. Nach späteren Änderungen an `main` muss der Vergleichsbranch entsprechend aktualisiert werden.
 
 **Rot:** entfernte Originalzeilen. **Grün:** unsere Ergänzungen. Für die eigentliche Integration im Dateibaum `custom_components/wled/` öffnen.
 
