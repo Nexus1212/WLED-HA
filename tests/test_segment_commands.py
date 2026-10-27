@@ -33,7 +33,7 @@ class SegmentCommandsTests(unittest.IsolatedAsyncioTestCase):
             self.sent.append(("off", kwargs))
 
         self.helper = commands.SegmentCommands(
-            on, off, lambda: self.events.append("request"), asyncio.create_task
+            on, off, lambda request_id: self.events.append("request"), asyncio.create_task
         )
         self.sleep_patch = patch.object(commands, "sleep", sleep)
         self.sleep_patch.start()
@@ -113,7 +113,7 @@ class SegmentCommandsTests(unittest.IsolatedAsyncioTestCase):
             other_sent.append(kwargs)
 
         other = commands.SegmentCommands(
-            other_on, self.helper._send_off, lambda: None, asyncio.create_task
+            other_on, self.helper._send_off, lambda request_id: None, asyncio.create_task
         )
         try:
             await self.helper.turn_on(False)
@@ -159,6 +159,83 @@ class SegmentCommandsTests(unittest.IsolatedAsyncioTestCase):
             await task
         await self.helper.turn_off()
         self.assertEqual(self.sent, [("off", {})])
+
+    async def test_ready_before_timer_starts_sends_once(self):
+        await self.helper.turn_on(False, effect="Lake")
+        request_id = self.helper._request_id
+        self.assertTrue(self.helper.ready(request_id))
+        self.assertFalse(self.helper.ready(request_id))
+        await self.tick()
+        self.assertEqual(self.sent, [("on", {"effect": "Lake"})])
+        self.release.set()
+        await self.tick()
+        self.assertEqual(len(self.sent), 1)
+
+    async def test_ready_during_wait_keeps_latest_parameters(self):
+        await self.helper.turn_on(False, brightness=10)
+        await self.tick()
+        await self.helper.turn_on(False, brightness=80)
+        self.assertTrue(self.helper.ready(self.helper._request_id))
+        await self.tick()
+        self.assertEqual(self.sent, [("on", {"brightness": 80})])
+        self.assertFalse(self.release.is_set())
+
+    async def test_wrong_request_id_keeps_timeout(self):
+        await self.helper.turn_on(False)
+        self.assertFalse(self.helper.ready("wrong"))
+        await self.tick()
+        self.assertEqual(self.sent, [])
+        self.release.set()
+        await self.tick()
+        self.assertEqual(self.sent, [("on", {})])
+
+    async def test_late_ready_after_timeout_is_ignored(self):
+        await self.helper.turn_on(False)
+        request_id = self.helper._request_id
+        self.release.set()
+        await self.tick()
+        self.assertFalse(self.helper.ready(request_id))
+        self.assertEqual(self.sent, [("on", {})])
+
+    async def test_off_wins_over_queued_ready(self):
+        await self.helper.turn_on(False)
+        request_id = self.helper._request_id
+        self.helper.ready(request_id)
+        await self.helper.turn_off()
+        await self.tick()
+        self.assertFalse(self.helper.ready(request_id))
+        self.assertEqual(self.sent, [("off", {})])
+
+    async def test_old_ready_cannot_release_new_request(self):
+        await self.helper.turn_on(False)
+        old_id = self.helper._request_id
+        self.helper.ready(old_id)
+        await self.helper.turn_off()
+        await self.helper.turn_on(False, effect="Solid")
+        new_id = self.helper._request_id
+        self.assertNotEqual(old_id, new_id)
+        self.assertFalse(self.helper.ready(old_id))
+        await self.tick()
+        self.assertEqual(self.sent, [("off", {})])
+        self.assertTrue(self.helper.ready(new_id))
+        await self.tick()
+        self.assertEqual(self.sent[-1], ("on", {"effect": "Solid"}))
+
+    async def test_ready_after_unload_is_ignored(self):
+        await self.helper.turn_on(False)
+        request_id = self.helper._request_id
+        self.helper.ready(request_id)
+        await self.helper.close()
+        self.assertFalse(self.helper.ready(request_id))
+        self.assertEqual(self.sent, [])
+
+    async def test_timeout_and_ready_same_turn_send_once(self):
+        await self.helper.turn_on(False)
+        await self.tick()
+        self.release.set()
+        self.helper.ready(self.helper._request_id)
+        await self.tick()
+        self.assertEqual(self.sent, [("on", {})])
 
 
 class EffectsTests(unittest.TestCase):

@@ -1,0 +1,150 @@
+[
+  {
+    "id": "wled-ready-tab",
+    "type": "tab",
+    "label": "Arbeitszimmer – optionale WLED-Freigabe",
+    "disabled": false,
+    "info": "Alle drei HA-Knoten mit dem eigenen Server verbinden. Alte Relais-Flows für dieses Segment deaktivieren. Ohne Verbindung vom Relais zum Freigabe-Knoten gilt weiterhin 1 Sekunde. Die Antwort nach switch.turn_on ist keine physische KNX-Rückmeldung.",
+    "wires": []
+  },
+  {
+    "id": "wled-ready-events",
+    "type": "server-events",
+    "z": "wled-ready-tab",
+    "name": "HA wählen: Einschaltanforderung",
+    "server": "",
+    "version": 3,
+    "eventType": "wled_segment_turn_on_requested",
+    "eventData": "",
+    "waitForRunning": true,
+    "exposeAsEntityConfig": "",
+    "outputProperties": [
+      {
+        "property": "payload",
+        "propertyType": "msg",
+        "value": "",
+        "valueType": "eventData"
+      }
+    ],
+    "x": 220,
+    "y": 160,
+    "wires": [
+      [
+        "wled-ready-filter"
+      ]
+    ]
+  },
+  {
+    "id": "wled-ready-filter",
+    "type": "function",
+    "z": "wled-ready-tab",
+    "name": "Arbeitszimmer: Vorgang merken",
+    "func": "const data = msg.payload?.event ?? msg.payload?.data ?? msg.payload;\nif (data?.entity_id !== 'light.wled_2_segment_1') return null;\nmsg.wled_request = {\n    entity_id: data.entity_id,\n    request_id: data.request_id\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 510,
+    "y": 160,
+    "wires": [
+      [
+        "wled-ready-relay",
+        "wled-ready-debug"
+      ]
+    ]
+  },
+  {
+    "id": "wled-ready-relay",
+    "type": "api-call-service",
+    "z": "wled-ready-tab",
+    "name": "HA wählen: Netzteil 2 EIN",
+    "server": "",
+    "version": 7,
+    "debugenabled": false,
+    "action": "switch.turn_on",
+    "floorId": [],
+    "areaId": [],
+    "deviceId": [],
+    "entityId": [
+      "switch.wled_netzteil_2"
+    ],
+    "labelId": [],
+    "data": "{}",
+    "dataType": "json",
+    "mergeContext": "",
+    "mustacheAltTags": false,
+    "outputProperties": [],
+    "queue": "none",
+    "blockInputOverrides": true,
+    "x": 810,
+    "y": 160,
+    "wires": [
+      [
+        "wled-ready-response"
+      ]
+    ]
+  },
+  {
+    "id": "wled-ready-debug",
+    "type": "debug",
+    "z": "wled-ready-tab",
+    "name": "Einschaltanforderung",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 810,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "wled-ready-response",
+    "type": "function",
+    "z": "wled-ready-tab",
+    "name": "OPTIONAL: Sofort freigeben",
+    "func": "const request = msg.wled_request;\nif (!request || typeof request.request_id !== 'string' || !request.request_id) return null;\nmsg.payload = {\n    event: 'wled_segment_turn_on_ready',\n    data: {\n        entity_id: request.entity_id,\n        request_id: request.request_id\n    }\n};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 810,
+    "y": 220,
+    "wires": [
+      [
+        "wled-ready-fire"
+      ]
+    ]
+  },
+  {
+    "id": "wled-ready-fire",
+    "type": "ha-fire-event",
+    "z": "wled-ready-tab",
+    "name": "HA wählen: WLED freigeben",
+    "server": "",
+    "version": 0,
+    "event": "wled_segment_turn_on_ready",
+    "data": "{}",
+    "dataType": "json",
+    "x": 1100,
+    "y": 220,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "wled-ready-note",
+    "type": "comment",
+    "z": "wled-ready-tab",
+    "name": "Optional: Leitung zum Freigabe-Knoten entfernen → weiterhin 1 s warten",
+    "info": "Die Freigabe erfolgt nach erfolgreichem HA-Serviceaufruf, ohne auf eine physische Relais-Rückmeldung zu warten. Du kannst vor dem Freigabe-Knoten eine eigene Bedingung/kurze Verzögerung einfügen. msg.wled_request dabei beibehalten. Nach 1 s schaltet WLED unabhängig davon ein.",
+    "x": 590,
+    "y": 80,
+    "wires": []
+  }
+]
