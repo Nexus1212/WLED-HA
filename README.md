@@ -1,22 +1,22 @@
 # WLED – unveränderte Vergleichsbasis
 
-Dieser Branch enthält die 19 unveränderten Dateien der offiziellen WLED-Integration aus Home Assistant Core **2026.10.4**. Die Dateiinhalte entsprechen den in `UPSTREAM.json` dokumentierten Git-Blobs. Nur der Ordnerpfad wurde von `homeassistant/components/wled/` auf `custom_components/wled/` abgebildet, damit GitHub die Dateien direkt vergleichen kann.
+Dieser Branch enthält die 19 unveränderten Dateien der offiziellen WLED-Integration aus Home Assistant Core **2026.10.4**. Alle Originaldateien sind anhand der Git-Blob-Hashes in `UPSTREAM.json` geprüft. Nur der Pfad wurde auf `custom_components/wled/` abgebildet.
 
-**Nur als Referenz verwenden. Diesen Branch nicht über HACS installieren.** Die angepasste, installierbare Version liegt auf `main`.
+**Referenzbranch, nicht über HACS installieren.** Die installierbare Version liegt auf `main`.
 
-## Original mit unserer Version vergleichen
+## Originalvergleich
 
-[Zeilenvergleich: Original → main](https://github.com/Nexus1212/WLED-HA/compare/upstream-2026.10.4..main)
+[Original → unsere Anpassungen (zeilenweise)](https://github.com/Nexus1212/WLED-HA/compare/upstream-2026.10.4...vergleich-anpassungen)
 
-Der Link verwendet bewusst **zwei Punkte** (`..`): Er vergleicht die beiden Dateistände direkt, unabhängig von ihrem gemeinsamen Vorfahren. Die Git-Historie von `main` wurde nicht umgeschrieben.
+Der Branch `vergleich-anpassungen` enthält einen geprüften Schnappschuss von `main` (Commit `c59c7daaa8111f06923222b6c52eb0497e0ce619`), dessen Dateistand direkt auf dieser Originalbasis aufsetzt. Dadurch erkennt GitHub die tatsächlichen Unterschiede. Die Historie und Dateien von `main` bleiben unverändert. Nach späteren Änderungen an `main` muss der Vergleichsbranch entsprechend aktualisiert werden.
 
-- **Rot:** Originalzeilen, die entfernt oder ersetzt wurden.
-- **Grün:** Hinzugefügte Zeilen unserer Anpassung.
-- Unter `custom_components/wled/`: Änderungen der eigentlichen Integration.
-- Weitere neue Dateien: Tests, Node-RED-Beispiel, HACS-Konfiguration und Dokumentation.
+**Rot:** entfernte Originalzeilen. **Grün:** unsere Ergänzungen. Für die eigentliche Integration im Dateibaum `custom_components/wled/` öffnen.
 
-Zum Zeitpunkt der Einrichtung: 17 Originaldateien unverändert; `light.py` und `manifest.json` geändert; `segment_commands.py` sowie zwei Übersetzungsdateien hinzugefügt.
+- 17 Originaldateien unverändert.
+- `light.py` und `manifest.json` geändert.
+- `segment_commands.py` und zwei Übersetzungen neu.
+- Weitere Ergänzungen: Dokumentation, HACS-Konfiguration, Tests und Node-RED-Beispiel.
 
 Offizielle Quelle: https://github.com/home-assistant/core/tree/2026.10.4/homeassistant/components/wled
 
-Lizenz: Apache 2.0, siehe `LICENSE.md`.
+Apache License 2.0, siehe `LICENSE.md`.
