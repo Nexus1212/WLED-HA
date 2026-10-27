@@ -1,0 +1,83 @@
+{
+  "repository": "home-assistant/core",
+  "path": "homeassistant/components/wled",
+  "ref": "2026.10.4",
+  "files": [
+    {
+      "name": "__init__.py",
+      "sha": "193d9954938f2b0659c5829fd6b39d5b9f5eb1e9"
+    },
+    {
+      "name": "analytics.py",
+      "sha": "d801bfeb31fed7393ec1e245b68f2700980d1558"
+    },
+    {
+      "name": "button.py",
+      "sha": "c18a682c50e03fc1071ecef4dcd2a6fc7b364711"
+    },
+    {
+      "name": "config_flow.py",
+      "sha": "32c41acb74bbdd367a7d87fbe872b9b47a82f558"
+    },
+    {
+      "name": "const.py",
+      "sha": "5591b682fa76e0b63294a62f43d4a9cb80f3e0c7"
+    },
+    {
+      "name": "coordinator.py",
+      "sha": "98a589d4005ea3a59c657b3aad59066210fc42ca"
+    },
+    {
+      "name": "diagnostics.py",
+      "sha": "de1a7a898d3b2e285356c712bae5650c6cd971c1"
+    },
+    {
+      "name": "entity.py",
+      "sha": "32580caca18e2bfad11c17ea951f9fed09e9a370"
+    },
+    {
+      "name": "helpers.py",
+      "sha": "64921e3258de4b3d5e23b1ec569cabd125514a4e"
+    },
+    {
+      "name": "icons.json",
+      "sha": "3cbed36792b0b2b7db0abf19c9dfe6b4914d9dc0"
+    },
+    {
+      "name": "light.py",
+      "sha": "e466d17dacd95d10a859fbe07524982893324c09"
+    },
+    {
+      "name": "manifest.json",
+      "sha": "d61e5f711df89c167d7b18e802c1661d0a796a65"
+    },
+    {
+      "name": "number.py",
+      "sha": "a25f535921027b192d9bff37bd8c58998fce7ff0"
+    },
+    {
+      "name": "quality_scale.yaml",
+      "sha": "252a68d28d901ae25ec1bdd4a7e215876a6bfa78"
+    },
+    {
+      "name": "select.py",
+      "sha": "f0e5c778b29728545adb95f191d80ea1ac993717"
+    },
+    {
+      "name": "sensor.py",
+      "sha": "a675d1e88448f3d90676b453958b48e405d99383"
+    },
+    {
+      "name": "strings.json",
+      "sha": "1085e26bf0c823fc58b5d3cbaed8201b117327a0"
+    },
+    {
+      "name": "switch.py",
+      "sha": "2833130571308a38964335bf3c7ca399a43f48e3"
+    },
+    {
+      "name": "update.py",
+      "sha": "9eddd1b0d0e71641cc719890b17db8cc09e6a986"
+    }
+  ]
+}
