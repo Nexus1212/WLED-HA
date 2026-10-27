@@ -21,7 +21,7 @@ from homeassistant.components.light import (
     LightEntity,
     LightEntityFeature,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.group import IntegrationSpecificGroup
 
@@ -38,6 +38,7 @@ from .coordinator import WLEDConfigEntry, WLEDDataUpdateCoordinator
 from .entity import WLEDEntity
 from .helpers import kelvin_to_255, kelvin_to_255_reverse, wled_exception_handler
 from .segment_commands import (
+    EVENT_SEGMENT_TURN_ON_READY,
     EVENT_SEGMENT_TURN_ON_REQUESTED,
     SegmentCommands,
     filtered_effects,
@@ -346,7 +347,7 @@ class WLEDSegmentLight(WLEDEntity, LightEntity):
         return bool(state.segments[self._segment].on)
 
     @callback
-    def _emit_turn_on_request(self) -> None:
+    def _emit_turn_on_request(self, request_id: str) -> None:
         """Let Node-RED turn on the power supply before sending to WLED."""
         self.hass.bus.async_fire(
             EVENT_SEGMENT_TURN_ON_REQUESTED,
@@ -354,7 +355,25 @@ class WLEDSegmentLight(WLEDEntity, LightEntity):
                 "entity_id": self.entity_id,
                 "segment_id": self._segment,
                 "config_entry_id": self.coordinator.config_entry.entry_id,
+                "request_id": request_id,
             },
+        )
+
+    @override
+    async def async_added_to_hass(self) -> None:
+        """Listen before any ON request; unregister on entity removal."""
+        await super().async_added_to_hass()
+
+        @callback
+        def handle_ready(event: Event) -> None:
+            data = event.data
+            if data.get("entity_id") != self.entity_id:
+                return
+            if isinstance(request_id := data.get("request_id"), str):
+                self._commands.ready(request_id)
+
+        self.async_on_remove(
+            self.hass.bus.async_listen(EVENT_SEGMENT_TURN_ON_READY, handle_ready)
         )
 
     @override

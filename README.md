@@ -1,17 +1,19 @@
 # WLED HA
 
 Angepasste Home-Assistant-WLED-Integration auf Basis von **Core 2026.10.4**.
-Version **0.1.0**. Für einen ersten Test auf deiner Installation vorbereitet;
-noch nicht mit einem echten Controller oder in deiner HA-Instanz getestet.
+Version **0.2.0**. Die Grundfunktion von 0.1.0 wurde vom Anwender erfolgreich
+getestet. Die optionale Freigabe und das neue Popup sind automatisiert bzw.
+strukturell geprüft; ihr Test in der Zielinstallation steht noch aus.
 
 ## Änderungen
 
 - Reduzierte Effektliste: 29 Namen, `Solid` zuerst; nicht vom Controller
   unterstützte Namen werden ausgeblendet. Die Firmware-Effekt-IDs bleiben erhalten.
 - Beim Wechsel einer Segment-Leuchte von Aus nach An: Ereignis auslösen,
-  **1 Sekunde warten**, dann WLED einschalten. Auch bei bereits versorgtem Netzteil.
-- **Keine Relais-Rückmeldung und kein Warten auf Node-RED.** Ein langsamer oder
-  ausgefallener Node-RED-Flow verhindert den WLED-Befehl nicht.
+  **bis zu 1 Sekunde warten**, dann WLED einschalten. Auch bei bereits versorgtem Netzteil.
+- **Keine verpflichtende Relais-Rückmeldung.** Eine passende optionale Freigabe
+  aus Node-RED löst den WLED-Befehl früher aus. Ohne Antwort gilt weiterhin
+  die Sekunde; ein ausgefallener Node-RED-Flow verhindert den Befehl nicht.
 - Helligkeit, Farbe und Effekt bei eingeschaltetem Segment werden sofort geändert.
 - Erneute Einschalt-/Farb-/Helligkeitsbefehle während der Sekunde werden zusammengeführt;
   sie starten die Wartezeit nicht neu. Ausschalten bricht den wartenden Befehl ab.
@@ -66,10 +68,72 @@ data:
   entity_id: light.example_segment_1
   segment_id: 1
   config_entry_id: <HA-Konfigurationseintrag des Controllers>
+  request_id: <eindeutige ID dieses Einschaltvorgangs>
 ```
 
 Das normale `state_changed` nach `on` kommt für das vorgeschaltete Netzteil zu spät.
 Das neue Ereignis wird vorher ausgelöst. Keine zusätzliche Sekunde in Node-RED einbauen.
+
+## Optional vorzeitig freigeben (ab 0.2.0)
+
+Node-RED kann vor Ablauf der Sekunde das HA-Ereignis
+`wled_segment_turn_on_ready` senden. Es muss genau diese zwei Daten enthalten:
+
+```yaml
+entity_id: light.wled_2_segment_1
+request_id: "<unverändert aus der Anforderung übernehmen>"
+```
+
+Die UUID gilt nur für den aktuellen Einschaltvorgang. Falsche, doppelte,
+verspätete oder nach einem Ausschalten empfangene Antworten werden ignoriert.
+Der Ereignis-Listener wird beim Entladen der Entität entfernt. Das Zeitlimit
+beträgt weiterhin eine Sekunde; Node-RED kann es verkürzen, nicht verlängern.
+
+Für das Arbeitszimmer liegt ein fertiger Flow in
+[`examples/node-red-arbeitszimmer-ready.json`](examples/node-red-arbeitszimmer-ready.json):
+
+1. Alten Relais-Flow für dieses Segment deaktivieren, dann JSON importieren.
+2. In **Events: all**, **Action** und **Fire Event** den vorhandenen HA-Server wählen.
+3. `light.wled_2_segment_1` und `switch.wled_netzteil_2` sind bereits eingetragen.
+4. Deploy. Der Flow schaltet das Relais ein und sendet danach die Freigabe.
+
+**Die erfolgreiche Action ist keine Bestätigung, dass das Relais physisch
+geschaltet hat.** Wie gewünscht wird keine KNX-Rückmeldung verlangt. Wer die
+vorzeitige Freigabe nicht möchte, entfernt einfach die Leitung vom Action-
+zum Freigabe-Knoten. Vor der Freigabe lässt sich auch eine eigene kurze
+Verzögerung oder Bedingung ergänzen; dabei `msg.wled_request` beibehalten.
+
+Der bisherige Flow ohne Antwort funktioniert unverändert weiter. Antworten
+nach Ablauf der Sekunde haben keine Wirkung. Kein automatisches Netzteil-AUS.
+
+## Dashboard mit Farbe, Effekten, Geschwindigkeit und Intensität
+
+[`examples/dashboard-arbeitszimmer.yaml`](examples/dashboard-arbeitszimmer.yaml)
+ist eine vollständige manuelle Dashboard-Karte für das Arbeitszimmer EG.
+Benötigt Browser Mod und **Light Entity Card** (`custom:light-entity-card`),
+beide müssen installiert und ihre Frontend-Ressourcen geladen sein.
+
+Dashboard bearbeiten → Karte hinzufügen → **Manuell** → YAML einfügen → Speichern.
+Tippen auf die Kartenfläche öffnet das Popup nur auf dem bedienenden Browser;
+das Icon schaltet das Licht. Es gibt keinen `features:`-Block auf der Kachel.
+
+Das Popup zeigt Farbkreis, Helligkeit, die Effektliste der nativen Lichtentität,
+Geschwindigkeit, Intensität und Farbpalette. Die beiden Zahlenregler steuern
+`number.wled_2_segment_1_geschwindigkeit` und
+`number.wled_2_segment_1_intensitat`. Sie sind dauerhaft sichtbar; ein Effekt
+kann einzelne Parameter ignorieren. Es wird keine automatische Erkennung
+unterstützter Effektparameter eingeführt.
+
+Die neue Karte ersetzt weder global den eingebauten Lichtdialog noch verändert
+sie vorhandene Dashboards automatisch. Bei „Custom element doesn't exist:
+light-entity-card“ die Karte über HACS installieren und den Browser neu laden.
+
+## Update von 0.1.0
+
+In HACS das Repository öffnen und die aktuelle Version erneut herunterladen
+(Standardzweig `main`, falls keine Release-Auswahl angeboten wird). Danach
+Home Assistant neu starten. Bestehende WLED-Geräte nicht löschen. Flow und
+Dashboard-YAML werden separat importiert; HACS installiert nur die Integration.
 
 ## Geltungsbereich
 
@@ -98,7 +162,7 @@ Palette, Rainbow, PS Sonic Boom, PS Sonic Stream, PS Starburst, Sunrise.
 ## Prüfung und Wartung
 
 `python -m unittest discover -s tests -v` prüft die Produktionslogik für
-Verzögerung, Zusammenführen, Abbruch, mehrere Segmente und Effektfilter.
+Verzögerung, Zusammenführen, Abbruch, mehrere Segmente, optionale Freigaben und Effektfilter.
 Die Tests benötigen keinen HA-Server. Die Adaptertests verwenden HA/WLED-Testdoubles;
 sie ersetzen keinen vollständigen Integrationstest in Home Assistant.
 

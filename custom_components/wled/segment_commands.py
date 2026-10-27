@@ -4,9 +4,11 @@ import asyncio
 from asyncio import sleep
 from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any
+from uuid import uuid4
 
 TURN_ON_DELAY_SECONDS = 1.0
 EVENT_SEGMENT_TURN_ON_REQUESTED = "wled_segment_turn_on_requested"
+EVENT_SEGMENT_TURN_ON_READY = "wled_segment_turn_on_ready"
 
 ALLOWED_EFFECTS = (
     "Solid", "Bends", "Candle Multi", "Lake", "Sine", "Twinklefox", "Twinkleup",
@@ -27,14 +29,15 @@ class SegmentCommands:
 
     Service calls return after scheduling, so the platform's semaphore never
     blocks OFF or other segments for the duration of the delay. Actual commands
-    for this segment are serialized. No relay acknowledgement is consulted.
+    for this segment are serialized. An optional matching READY event can
+    shorten the delay; the timeout never depends on a relay acknowledgement.
     """
 
     def __init__(
         self,
         send_on: Callable[..., Awaitable[None]],
         send_off: Callable[..., Awaitable[None]],
-        emit_request: Callable[[], None],
+        emit_request: Callable[[str], None],
         create_task: Callable[[Coroutine[Any, Any, None]], asyncio.Task[None]],
     ) -> None:
         self._send_on = send_on
@@ -46,6 +49,8 @@ class SegmentCommands:
         self._timer_task: asyncio.Task[None] | None = None
         self._tasks: set[asyncio.Task[None]] = set()
         self._closed = False
+        self._request_id: str | None = None
+        self._ready_received = False
 
     async def turn_on(self, is_on: bool, **kwargs: Any) -> None:
         """Delay an OFF-to-ON request, but not changes to a running segment."""
@@ -61,25 +66,57 @@ class SegmentCommands:
             return
 
         self._pending = dict(kwargs)
-        self._emit_request()
-        task = self._create_task(self._delayed_on())
+        self._request_id = request_id = uuid4().hex
+        self._ready_received = False
+        task = self._track_task(self._delayed_on(request_id))
         self._timer_task = task
+        self._emit_request(request_id)
+
+    def _track_task(self, coro: Coroutine[Any, Any, None]) -> asyncio.Task[None]:
+        task = self._create_task(coro)
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
+        return task
 
-    async def _delayed_on(self) -> None:
+    def ready(self, request_id: str) -> bool:
+        """Release only the matching pending request, at most once."""
+        if (
+            self._closed
+            or self._pending is None
+            or self._request_id != request_id
+            or self._ready_received
+        ):
+            return False
+        self._ready_received = True
+        if self._timer_task is not None:
+            self._timer_task.cancel()
+            self._timer_task = None
+        self._track_task(self._send_pending(request_id))
+        return True
+
+    async def _delayed_on(self, request_id: str) -> None:
         await sleep(TURN_ON_DELAY_SECONDS)
+        await self._send_pending(request_id)
+
+    async def _send_pending(self, request_id: str) -> None:
         async with self._lock:
-            if self._closed or self._pending is None:
+            if (
+                self._closed
+                or self._pending is None
+                or self._request_id != request_id
+            ):
                 return
             kwargs = self._pending
             self._pending = None
+            self._request_id = None
             self._timer_task = None
             await self._send_on(**kwargs)
 
     def cancel_pending(self) -> None:
         """Cancel only a waiting command, never an HTTP command in flight."""
         self._pending = None
+        self._request_id = None
+        self._ready_received = False
         if self._timer_task is not None:
             self._timer_task.cancel()
             self._timer_task = None
