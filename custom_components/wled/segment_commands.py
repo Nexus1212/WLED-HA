@@ -11,8 +11,8 @@ EVENT_SEGMENT_TURN_ON_REQUESTED = "wled_segment_turn_on_requested"
 EVENT_SEGMENT_TURN_ON_READY = "wled_segment_turn_on_ready"
 
 ALLOWED_EFFECTS = (
-    "Solid", "Bends", "Candle Multi", "Lake", "Sine", "Twinklefox", "Twinkleup",
-    "BPM", "Chase 2", "Chunchun", "Heartbeat", "PS Chase", "Chase", "Loading",
+    "Solid", "Blends", "Candle Multi", "Lake", "Sine", "Twinklefox", "Twinkleup",
+    "Bpm", "Chase 2", "Chunchun", "Heartbeat", "PS Chase", "Chase", "Loading",
     "Scan", "Scan Dual", "Two Dots", "Fireworks 1D", "Meteor", "PS Fire 1D",
     "PS Fireworks 1D", "Flow Stripe", "Glitter", "Palette", "Rainbow",
     "PS Sonic Boom", "PS Sonic Stream", "PS Starburst", "Sunrise",

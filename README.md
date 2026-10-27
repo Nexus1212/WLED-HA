@@ -1,7 +1,7 @@
 # WLED HA
 
 Angepasste Home-Assistant-WLED-Integration auf Basis von **Core 2026.10.4**.
-Version **0.2.0**. Die Grundfunktion von 0.1.0 wurde vom Anwender erfolgreich
+Version **0.2.1**. Die Grundfunktion von 0.1.0 wurde vom Anwender erfolgreich
 getestet. Die optionale Freigabe und das neue Popup sind automatisiert bzw.
 strukturell geprüft; ihr Test in der Zielinstallation steht noch aus.
 
@@ -154,7 +154,7 @@ Dashboard-YAML werden separat importiert; HACS installiert nur die Integration.
 
 ## Effekte
 
-Solid, Bends, Candle Multi, Lake, Sine, Twinklefox, Twinkleup, BPM, Chase 2,
+Solid, Blends, Candle Multi, Lake, Sine, Twinklefox, Twinkleup, Bpm, Chase 2,
 Chunchun, Heartbeat, PS Chase, Chase, Loading, Scan, Scan Dual, Two Dots,
 Fireworks 1D, Meteor, PS Fire 1D, PS Fireworks 1D, Flow Stripe, Glitter,
 Palette, Rainbow, PS Sonic Boom, PS Sonic Stream, PS Starburst, Sunrise.
