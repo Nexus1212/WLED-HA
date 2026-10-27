@@ -1,0 +1,101 @@
+[
+  {
+    "id": "wled-native-tab",
+    "type": "tab",
+    "label": "WLED Segment → Netzteil EIN",
+    "disabled": false,
+    "info": "HA-Server in beiden HA-Knoten wählen; Platzhalter für Segment und Relais ersetzen. Keine Ausschaltung, kein MQTT, keine zusätzliche Verzögerung."
+  },
+  {
+    "id": "wled-native-events",
+    "type": "server-events",
+    "z": "wled-native-tab",
+    "name": "HA wählen: Einschaltanforderung",
+    "server": "",
+    "version": 3,
+    "eventType": "wled_segment_turn_on_requested",
+    "eventData": "",
+    "waitForRunning": true,
+    "exposeAsEntityConfig": "",
+    "outputProperties": [
+      {
+        "property": "payload",
+        "propertyType": "msg",
+        "value": "",
+        "valueType": "eventData"
+      }
+    ],
+    "x": 220,
+    "y": 160,
+    "wires": [
+      [
+        "wled-native-filter"
+      ]
+    ]
+  },
+  {
+    "id": "wled-native-filter",
+    "type": "function",
+    "z": "wled-native-tab",
+    "name": "Segment-Entität eintragen",
+    "func": "const event = msg.payload?.event ?? msg.payload?.data;\nif (event?.entity_id !== 'light.example_segment_1') return null;\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 510,
+    "y": 160,
+    "wires": [
+      [
+        "wled-native-relay",
+        "wled-native-debug"
+      ]
+    ]
+  },
+  {
+    "id": "wled-native-relay",
+    "type": "api-call-service",
+    "z": "wled-native-tab",
+    "name": "HA + Netzteil-Relais wählen",
+    "server": "",
+    "version": 7,
+    "debugenabled": false,
+    "action": "switch.turn_on",
+    "floorId": [],
+    "areaId": [],
+    "deviceId": [],
+    "entityId": [
+      "switch.example_power_supply"
+    ],
+    "labelId": [],
+    "data": "{}",
+    "dataType": "json",
+    "mergeContext": "",
+    "mustacheAltTags": false,
+    "outputProperties": [],
+    "queue": "none",
+    "blockInputOverrides": true,
+    "x": 810,
+    "y": 160,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "wled-native-debug",
+    "type": "debug",
+    "z": "wled-native-tab",
+    "name": "Einschaltanforderung",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 810,
+    "y": 240,
+    "wires": []
+  }
+]
