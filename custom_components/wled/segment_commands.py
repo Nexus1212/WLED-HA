@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any
 from uuid import uuid4
 
-TURN_ON_DELAY_SECONDS = 1.0
+TURN_ON_DELAY_SECONDS = 2.0
 EVENT_SEGMENT_TURN_ON_REQUESTED = "wled_segment_turn_on_requested"
 EVENT_SEGMENT_TURN_ON_READY = "wled_segment_turn_on_ready"
 

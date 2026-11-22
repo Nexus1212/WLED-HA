@@ -1,5 +1,10 @@
 # Versionshistorie
 
+## Unveröffentlicht
+
+- Standard-Wartezeit beim Einschalten einer Segment-Leuchte von einer auf zwei Sekunden erhöht.
+- Passende READY-/Freigabe-Ereignisse schalten weiterhin sofort ein; Abbruch, Zusammenführen und Request-ID-Korrelation bleiben unverändert.
+
 ## 0.2.1
 
 - Effektnamen auf die WLED-Schreibweise `Blends` und `Bpm` korrigiert. Beide wurden zuvor durch den exakten Namensvergleich ausgeblendet.
