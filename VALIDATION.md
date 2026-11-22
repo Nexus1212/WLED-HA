@@ -1,3 +1,21 @@
+# Validierung: zwei Sekunden Standard-Wartezeit
+
+Am 22.11.2026 lokal geprüft:
+
+- Alle 29 Python-Tests mit `python -m unittest discover -s tests -v` bestanden.
+  Die Zeitsteuerungs- und Adaptertests erwarten jetzt zwei Sekunden.
+- Bestehende Tests bestätigen sofortige passende READY-Freigaben, ignorierte
+  falsche/veraltete/doppelte Antworten, Abbruch durch OFF und Entladen,
+  Zusammenführen weiterer ON-Befehle sowie unabhängige Segmente.
+- `python -m compileall -q custom_components` erfolgreich.
+- `node tests/test-node-red.js` erfolgreich: Routing, Request-ID-Erhalt,
+  Freigabe-Payload und Verkabelung des Beispiels geprüft.
+- `git diff --check` ohne Befund.
+
+Die Zeitsteuerung wird kontrolliert simuliert; keine Prüfung mit einem laufenden
+Home Assistant oder realen WLED-/KNX-Geräten. Die produktive Änderung beschränkt
+sich auf die Wartezeit-Konstante; READY-, Abbruch- und Korrelationslogik sind unverändert.
+
 # Validierung 0.2.0
 
 Am 27.10.2026 lokal geprüft:

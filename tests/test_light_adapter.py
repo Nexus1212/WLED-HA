@@ -65,7 +65,7 @@ class AdapterTests(unittest.IsolatedAsyncioTestCase):
         self.gate = asyncio.Event()
 
         async def sleep(seconds):
-            self.assertEqual(seconds, 1.0)
+            self.assertEqual(seconds, 2.0)
             await self.gate.wait()
 
         self.patcher = patch.object(commands, 'sleep', sleep)

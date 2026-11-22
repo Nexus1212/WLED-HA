@@ -10,12 +10,12 @@ strukturell geprüft; ihr Test in der Zielinstallation steht noch aus.
 - Reduzierte Effektliste: 29 Namen, `Solid` zuerst; nicht vom Controller
   unterstützte Namen werden ausgeblendet. Die Firmware-Effekt-IDs bleiben erhalten.
 - Beim Wechsel einer Segment-Leuchte von Aus nach An: Ereignis auslösen,
-  **bis zu 1 Sekunde warten**, dann WLED einschalten. Auch bei bereits versorgtem Netzteil.
+  **bis zu 2 Sekunden warten**, dann WLED einschalten. Auch bei bereits versorgtem Netzteil.
 - **Keine verpflichtende Relais-Rückmeldung.** Eine passende optionale Freigabe
-  aus Node-RED löst den WLED-Befehl früher aus. Ohne Antwort gilt weiterhin
-  die Sekunde; ein ausgefallener Node-RED-Flow verhindert den Befehl nicht.
+  aus Node-RED löst den WLED-Befehl früher aus. Ohne Antwort gilt
+  die Wartezeit von zwei Sekunden; ein ausgefallener Node-RED-Flow verhindert den Befehl nicht.
 - Helligkeit, Farbe und Effekt bei eingeschaltetem Segment werden sofort geändert.
-- Erneute Einschalt-/Farb-/Helligkeitsbefehle während der Sekunde werden zusammengeführt;
+- Erneute Einschalt-/Farb-/Helligkeitsbefehle während der zwei Sekunden werden zusammengeführt;
   sie starten die Wartezeit nicht neu. Ausschalten bricht den wartenden Befehl ab.
 - Der HA-Service kehrt nach dem Planen zurück. Der Entitätszustand bleibt während
   der Wartezeit beim tatsächlichen WLED-Zustand. Fehler des späteren Befehls stehen
@@ -72,11 +72,11 @@ data:
 ```
 
 Das normale `state_changed` nach `on` kommt für das vorgeschaltete Netzteil zu spät.
-Das neue Ereignis wird vorher ausgelöst. Keine zusätzliche Sekunde in Node-RED einbauen.
+Das neue Ereignis wird vorher ausgelöst. Keine zusätzliche Wartezeit in Node-RED einbauen.
 
 ## Optional vorzeitig freigeben (ab 0.2.0)
 
-Node-RED kann vor Ablauf der Sekunde das HA-Ereignis
+Node-RED kann vor Ablauf der zwei Sekunden das HA-Ereignis
 `wled_segment_turn_on_ready` senden. Es muss genau diese zwei Daten enthalten:
 
 ```yaml
@@ -87,7 +87,7 @@ request_id: "<unverändert aus der Anforderung übernehmen>"
 Die UUID gilt nur für den aktuellen Einschaltvorgang. Falsche, doppelte,
 verspätete oder nach einem Ausschalten empfangene Antworten werden ignoriert.
 Der Ereignis-Listener wird beim Entladen der Entität entfernt. Das Zeitlimit
-beträgt weiterhin eine Sekunde; Node-RED kann es verkürzen, nicht verlängern.
+beträgt zwei Sekunden; Node-RED kann es verkürzen, nicht verlängern.
 
 Für das Arbeitszimmer liegt ein fertiger Flow in
 [`examples/node-red-arbeitszimmer-ready.json`](examples/node-red-arbeitszimmer-ready.json):
@@ -104,7 +104,7 @@ zum Freigabe-Knoten. Vor der Freigabe lässt sich auch eine eigene kurze
 Verzögerung oder Bedingung ergänzen; dabei `msg.wled_request` beibehalten.
 
 Der bisherige Flow ohne Antwort funktioniert unverändert weiter. Antworten
-nach Ablauf der Sekunde haben keine Wirkung. Kein automatisches Netzteil-AUS.
+nach Ablauf der zwei Sekunden haben keine Wirkung. Kein automatisches Netzteil-AUS.
 
 ## Dashboard mit Farbe, Effekten, Geschwindigkeit und Intensität
 
@@ -167,7 +167,7 @@ Die Tests benötigen keinen HA-Server. Die Adaptertests verwenden HA/WLED-Testdo
 sie ersetzen keinen vollständigen Integrationstest in Home Assistant.
 
 Nach Installation zuerst ein Segment testen: Node-RED-Debug zeigt sofort das
-Ereignis, WLED schaltet nach einer Sekunde ein. Danach während der Wartezeit
+Ereignis, WLED schaltet ohne Freigabe nach zwei Sekunden ein. Danach während der Wartezeit
 `light.turn_off` aufrufen und prüfen, dass das Segment aus bleibt.
 
 Core-Updates aktualisieren diese Kopie nicht automatisch. Vor einem Versionswechsel

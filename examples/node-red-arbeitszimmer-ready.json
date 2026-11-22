@@ -4,7 +4,7 @@
     "type": "tab",
     "label": "Arbeitszimmer – optionale WLED-Freigabe",
     "disabled": false,
-    "info": "Alle drei HA-Knoten mit dem eigenen Server verbinden. Alte Relais-Flows für dieses Segment deaktivieren. Ohne Verbindung vom Relais zum Freigabe-Knoten gilt weiterhin 1 Sekunde. Die Antwort nach switch.turn_on ist keine physische KNX-Rückmeldung.",
+    "info": "Alle drei HA-Knoten mit dem eigenen Server verbinden. Alte Relais-Flows für dieses Segment deaktivieren. Ohne Verbindung vom Relais zum Freigabe-Knoten gelten 2 Sekunden. Die Antwort nach switch.turn_on ist keine physische KNX-Rückmeldung.",
     "wires": []
   },
   {
